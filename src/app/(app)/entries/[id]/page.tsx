@@ -1,14 +1,23 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+import { LanguageFlag } from "@/components/language-flag";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { getWorldLanguage } from "@/constants/world-languages";
 import { deleteEntry, getEntryById } from "@/features/entries/actions";
+import {
+  ENTRY_TYPES,
+  entryTypeLabels,
+  noteKindLabels,
+  type EntryType,
+} from "@/features/entries/entry-taxonomy";
 import { isDatabaseConfigured } from "@/db";
 import {
   normalizeMeaningsForDisplay,
   normalizeStoredContentForDisplay,
 } from "@/lib/entry-html";
+import type { EntryPayload } from "@/types/entry-payload";
 
 function safeExternalHref(raw: string): string | null {
   const t = raw.trim();
@@ -24,6 +33,24 @@ function safeExternalHref(raw: string): string | null {
     }
   }
   return null;
+}
+
+const legacyTypeLabels: Record<string, string> = {
+  vocab: "Vocabulary (legacy)",
+  example: "Example (legacy)",
+  mistake: "Mistake (legacy)",
+};
+
+function humanEntryType(t: string): string {
+  if ((ENTRY_TYPES as readonly string[]).includes(t)) {
+    return entryTypeLabels[t as EntryType];
+  }
+  return legacyTypeLabels[t] ?? t;
+}
+
+function readPayload(raw: unknown): EntryPayload | null {
+  if (!raw || typeof raw !== "object") return null;
+  return raw as EntryPayload;
 }
 
 export default async function EntryDetailPage({
@@ -54,16 +81,45 @@ export default async function EntryDetailPage({
     redirect("/entries");
   }
 
+  const payload = readPayload(entry.payload);
+  const typeLine = (() => {
+    const base = humanEntryType(entry.type);
+    if (entry.type === "note" && payload?.noteKind) {
+      return `${base} · ${noteKindLabels[payload.noteKind]}`;
+    }
+    return base;
+  })();
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <p className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
-            {entry.type} · {entry.status}
+            {typeLine} · {entry.status}
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">
             {entry.title?.trim() || "Untitled"}
           </h1>
+          {entry.languages && entry.languages.length > 0 ? (
+            <ul className="flex flex-wrap gap-2 pt-2">
+              {entry.languages.map((code) => {
+                const lang = getWorldLanguage(code);
+                const label = lang?.name ?? code.toUpperCase();
+                const cc = lang?.flagCountry ?? "UN";
+                return (
+                  <li
+                    key={code}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-muted/30 px-2.5 py-1 text-xs text-muted-foreground"
+                  >
+                    <LanguageFlag countryCode={cc} title={label} />
+                    <span className="font-medium text-foreground">{label}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="pt-2 text-xs text-muted-foreground">No languages tagged on this entry.</p>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/entries" className={buttonVariants({ variant: "outline" })}>
@@ -78,9 +134,10 @@ export default async function EntryDetailPage({
       </div>
 
       <div className="grid gap-4">
+        <PayloadBlock entryType={entry.type} payload={payload} />
         <ContentBlock html={entry.content} />
         <MeaningsBlock rawMeanings={entry.meaning} />
-        <Field label="Notes" value={entry.notes} mono />
+        <Field label="Item notes" value={entry.notes} mono />
         <SourceField value={entry.source} />
       </div>
 
@@ -88,6 +145,62 @@ export default async function EntryDetailPage({
         Editing and type-specific layouts are planned; this page is a read-only skeleton.
       </p>
     </div>
+  );
+}
+
+function PayloadBlock({ entryType, payload }: { entryType: string; payload: EntryPayload | null }) {
+  if (!payload) return null;
+
+  const isVocab = entryType === "vocabulary" || entryType === "vocab";
+  const isGrammar = entryType === "grammar";
+  const isNote = entryType === "note";
+
+  if (isVocab) {
+    return (
+      <>
+        <Field label="Pronunciation" value={payload.pronunciation ?? null} />
+        <Field label="Part of speech" value={payload.partOfSpeech ?? null} />
+        <StringListCard title="Synonyms" items={payload.synonyms} />
+        <StringListCard title="Antonyms" items={payload.antonyms} />
+      </>
+    );
+  }
+
+  if (isGrammar) {
+    return (
+      <>
+        <Field label="Structure" value={payload.structure ?? null} />
+        <StringListCard title="Examples" items={payload.examples} />
+        <StringListCard title="Common mistakes" items={payload.commonMistakes} />
+        <Field label="Usage notes" value={payload.usageNotes ?? null} mono />
+      </>
+    );
+  }
+
+  if (isNote) {
+    return <StringListCard title="Tags" items={payload.tags} />;
+  }
+
+  return null;
+}
+
+function StringListCard({ title, items }: { title: string; items?: string[] }) {
+  if (!items?.length) return null;
+  return (
+    <Card>
+      <CardHeader className="border-b border-border/70 pb-3">
+        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
+      </CardHeader>
+      <CardContent className="pt-4">
+        <ul className="list-inside list-disc space-y-1 text-sm text-foreground">
+          {items.map((item, i) => (
+            <li key={i} className="whitespace-pre-wrap">
+              {item}
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
   );
 }
 

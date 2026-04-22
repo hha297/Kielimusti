@@ -23,14 +23,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import type { CreateEntryInput } from "@/lib/validation";
+import type { CreateEntryInput } from "@/lib/entry-create-schema";
 
 /** Same as drag + delete column width (`size-9` = 2.25rem). */
 const meaningRowGridStyle = {
   gridTemplateColumns: "2.25rem minmax(0, 1fr) minmax(0, 2fr) 2.25rem",
 } as const;
 
-type MeaningRowField = FieldArrayWithId<CreateEntryInput, "meaning", "id">;
+type MeaningRowField = FieldArrayWithId<CreateEntryInput, "meanings", "id">;
 
 type MeaningRowsFieldProps = {
   fields: MeaningRowField[];
@@ -72,8 +72,7 @@ export function MeaningRowsField({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2">
-        <Label>Meanings</Label>
+      <div className="flex justify-end">
         <Button
           type="button"
           variant="outline"
@@ -175,7 +174,7 @@ function SortableMeaningRow({
           id={`meaning-${index}-text`}
           placeholder="Translation"
           disabled={disabled}
-          {...register(`meaning.${index}.meaning` as const)}
+          {...register(`meanings.${index}.meaning` as const)}
         />
       </div>
 
@@ -187,7 +186,7 @@ function SortableMeaningRow({
           id={`meaning-${index}-example`}
           placeholder="Example sentence"
           disabled={disabled}
-          {...register(`meaning.${index}.example` as const)}
+          {...register(`meanings.${index}.example` as const)}
         />
       </div>
 
