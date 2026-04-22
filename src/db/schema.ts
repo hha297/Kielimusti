@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   integer,
@@ -11,14 +11,9 @@ import {
 } from "drizzle-orm/pg-core";
 
 import type { EntryMeaning } from "@/types/entry-meaning";
+import type { EntryPayload } from "@/types/entry-payload";
 
-export const entryTypeEnum = pgEnum("entry_type", [
-  "vocab",
-  "grammar",
-  "note",
-  "example",
-  "mistake",
-]);
+export const entryTypeEnum = pgEnum("entry_type", ["vocabulary", "grammar", "note"]);
 
 export const entryStatusEnum = pgEnum("entry_status", [
   "draft",
@@ -57,9 +52,13 @@ export const entries = pgTable("entries", {
   title: text("title"),
   content: text("content"),
   meaning: jsonb("meaning").$type<EntryMeaning[] | null>(),
+  /** Type-specific extras (POS, synonyms, grammar examples, note kind/tags, …). */
+  payload: jsonb("payload").$type<EntryPayload | null>(),
   notes: text("notes"),
   source: text("source"),
   confidence: integer("confidence"),
+  /** ISO 639-1 codes (JSON array of strings) — `jsonb` binds reliably with the `postgres` driver. */
+  languages: jsonb("languages").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
   status: entryStatusEnum("status").notNull().default("draft"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

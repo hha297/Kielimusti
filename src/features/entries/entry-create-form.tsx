@@ -2,7 +2,16 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { useEffect, useRef } from "react";
+import {
+  Controller,
+  useFieldArray,
+  useForm,
+  useWatch,
+  type Resolver,
+  type UseFieldArrayReturn,
+  type UseFormReturn,
+} from "react-hook-form";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -18,34 +27,40 @@ import {
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { Textarea } from "@/components/ui/textarea";
 import { createEntry } from "@/features/entries/actions";
+import { getFieldConfigsForType, type FormFieldConfig } from "@/features/entries/entry-form-config";
+import {
+  ENTRY_TYPES,
+  entryTypeLabels,
+  noteKindLabels,
+} from "@/features/entries/entry-taxonomy";
+import { LanguageSelect } from "@/features/entries/language-select";
 import { MeaningRowsField } from "@/features/entries/meaning-rows-field";
-import { createEntrySchema, entryTypes, type CreateEntryInput } from "@/lib/validation";
-
-const labels: Record<(typeof entryTypes)[number], string> = {
-  vocab: "Vocab",
-  grammar: "Grammar",
-  note: "Note",
-  example: "Example",
-  mistake: "Mistake",
-};
+import { StringListField } from "@/features/entries/string-list-field";
+import type { CreateEntryInput } from "@/lib/entry-create-schema";
+import { createEntrySchema } from "@/lib/entry-create-schema";
+import { NOTE_KINDS } from "@/types/entry-payload";
+import { getDefaultEntryFormValues } from "@/types/entry-form";
 
 export function EntryCreateForm() {
   const router = useRouter();
   const form = useForm<CreateEntryInput>({
-    resolver: zodResolver(createEntrySchema),
-    defaultValues: {
-      type: "note",
-      title: "",
-      content: "",
-      meaning: [{ meaning: "", example: "" }],
-      notes: "",
-      source: "",
-    },
+    resolver: zodResolver(createEntrySchema) as Resolver<CreateEntryInput>,
+    defaultValues: getDefaultEntryFormValues("note"),
   });
+
+  const entryType = useWatch({ control: form.control, name: "type" });
+  const prevType = useRef(entryType);
+
+  useEffect(() => {
+    if (prevType.current === entryType) return;
+    prevType.current = entryType;
+    const lang = form.getValues("language");
+    form.reset({ ...getDefaultEntryFormValues(entryType), language: lang });
+  }, [entryType, form]);
 
   const meaningRows = useFieldArray({
     control: form.control,
-    name: "meaning",
+    name: "meanings",
   });
 
   async function onSubmit(data: CreateEntryInput) {
@@ -68,110 +83,350 @@ export function EntryCreateForm() {
     }
   }
 
+  const submitting = form.formState.isSubmitting;
+  const errors = form.formState.errors;
+  const fieldsConfig = getFieldConfigsForType(entryType);
+
   return (
-    <form
-      onSubmit={form.handleSubmit(onSubmit)}
-      className="mx-auto max-w-2xl space-y-6"
-    >
+    <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto max-w-2xl space-y-8">
+      <div className="space-y-6">
+        {fieldsConfig.map((field) => (
+          <FormFieldBlock
+            key={`${entryType}-${field.id}`}
+            field={field}
+            form={form}
+            meaningRows={meaningRows}
+            submitting={submitting}
+            errors={errors}
+          />
+        ))}
+      </div>
+
+      <div className="flex justify-end gap-2 border-t border-border/60 pt-6">
+        <Button type="button" variant="ghost" onClick={() => router.back()}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={submitting}>
+          {submitting ? "Saving…" : "Save entry"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+type EntryForm = UseFormReturn<CreateEntryInput>;
+type MeaningsArrayApi = UseFieldArrayReturn<CreateEntryInput, "meanings", "id">;
+
+function FormFieldBlock({
+  field,
+  form,
+  meaningRows,
+  submitting,
+  errors,
+}: {
+  field: FormFieldConfig;
+  form: EntryForm;
+  meaningRows: MeaningsArrayApi;
+  submitting: boolean;
+  errors: EntryForm["formState"]["errors"];
+}) {
+  const id = field.id;
+
+  if (id === "type") {
+    return (
       <div className="space-y-2">
-        <Label htmlFor="type">Type</Label>
+        <Label htmlFor="entry-type">{field.label}</Label>
         <Controller
           control={form.control}
           name="type"
-          render={({ field }) => (
+          render={({ field: f }) => (
             <Select
-              name={field.name}
-              value={field.value}
-              onValueChange={field.onChange}
+              name={f.name}
+              value={f.value}
+              onValueChange={f.onChange}
               onOpenChange={(open) => {
-                if (!open) field.onBlur();
+                if (!open) f.onBlur();
               }}
             >
-              <SelectTrigger id="type" className="w-full min-w-0">
-                <SelectValue className="capitalize" />
+              <SelectTrigger id="entry-type" className="w-full min-w-0 capitalize">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {entryTypes.map((t) => (
+                {ENTRY_TYPES.map((t) => (
                   <SelectItem key={t} value={t}>
-                    {labels[t]}
+                    {entryTypeLabels[t]}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           )}
         />
-        {form.formState.errors.type?.message ? (
-          <p className="text-xs text-destructive">{form.formState.errors.type.message}</p>
+        {errors.type?.message ? (
+          <p className="text-xs text-destructive">{errors.type.message}</p>
         ) : null}
       </div>
+    );
+  }
 
+  if (id === "language") {
+    return (
+      <LanguageSelect
+        control={form.control}
+        name="language"
+        disabled={submitting}
+        error={
+          typeof errors.language?.message === "string" ? errors.language.message : undefined
+        }
+      />
+    );
+  }
+
+  if (id === "title") {
+    const entryType = form.watch("type");
+    return (
       <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
-        <Input id="title" placeholder="Headline or term" {...form.register("title")} />
-        {form.formState.errors.title?.message ? (
-          <p className="text-xs text-destructive">{form.formState.errors.title.message}</p>
+        <Label htmlFor="title">{field.label}</Label>
+        <Input
+          id="title"
+          placeholder={field.placeholder}
+          disabled={submitting}
+          {...form.register("title")}
+        />
+        {entryType !== "note" && errors.title?.message ? (
+          <p className="text-xs text-destructive">{errors.title.message}</p>
         ) : null}
       </div>
+    );
+  }
 
+  if (id === "partOfSpeech") {
+    const name = id;
+    return (
       <div className="space-y-2">
-        <Label htmlFor="content">Content</Label>
+        <Label htmlFor={name}>{field.label}</Label>
+        <Input
+          id={name}
+          placeholder={field.placeholder}
+          disabled={submitting}
+          {...form.register(name)}
+        />
+      </div>
+    );
+  }
+
+  if (id === "structure") {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor="structure">{field.label}</Label>
+        <Input
+          id="structure"
+          placeholder={field.placeholder}
+          disabled={submitting}
+          {...form.register("structure")}
+        />
+      </div>
+    );
+  }
+
+  if (id === "usageNotes") {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor="usageNotes">{field.label}</Label>
+        <Textarea
+          id="usageNotes"
+          rows={3}
+          placeholder={field.placeholder}
+          className="resize-y font-mono text-sm"
+          disabled={submitting}
+          {...form.register("usageNotes")}
+        />
+      </div>
+    );
+  }
+
+  if (id === "source") {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor="source">{field.label}</Label>
+        <Input
+          id="source"
+          placeholder={field.placeholder}
+          disabled={submitting}
+          {...form.register("source")}
+        />
+      </div>
+    );
+  }
+
+  if (id === "notes") {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor="notes">{field.label}</Label>
+        {field.description ? (
+          <p className="text-xs text-muted-foreground">{field.description}</p>
+        ) : null}
+        <Textarea
+          id="notes"
+          rows={3}
+          placeholder={field.placeholder}
+          className="resize-y font-mono text-sm"
+          disabled={submitting}
+          {...form.register("notes")}
+        />
+      </div>
+    );
+  }
+
+  if (id === "content") {
+    return (
+      <div className="space-y-2">
+        <Label htmlFor="content">{field.label}</Label>
+        {field.description ? (
+          <p className="text-xs text-muted-foreground">{field.description}</p>
+        ) : null}
         <Controller
           name="content"
           control={form.control}
-          render={({ field }) => (
+          render={({ field: f }) => (
             <RichTextEditor
               id="content"
-              value={field.value ?? ""}
-              onChange={field.onChange}
-              onBlur={field.onBlur}
-              disabled={form.formState.isSubmitting}
-              aria-invalid={Boolean(form.formState.errors.content)}
+              value={f.value ?? ""}
+              onChange={f.onChange}
+              onBlur={f.onBlur}
+              disabled={submitting}
+              aria-invalid={Boolean(errors.content)}
             />
           )}
         />
-        {form.formState.errors.content?.message ? (
-          <p className="text-xs text-destructive">{form.formState.errors.content.message}</p>
+        {errors.content?.message ? (
+          <p className="text-xs text-destructive">{errors.content.message}</p>
         ) : null}
       </div>
+    );
+  }
 
+  if (id === "meanings") {
+    return (
       <div className="space-y-2">
+        <Label>{field.label}</Label>
+        {field.description ? (
+          <p className="text-xs text-muted-foreground">{field.description}</p>
+        ) : null}
         <MeaningRowsField
           fields={meaningRows.fields}
           register={form.register}
           append={meaningRows.append}
           remove={meaningRows.remove}
           move={meaningRows.move}
-          disabled={form.formState.isSubmitting}
+          disabled={submitting}
         />
-        {form.formState.errors.meaning?.message ? (
-          <p className="text-xs text-destructive">{String(form.formState.errors.meaning.message)}</p>
+        {errors.meanings?.message ? (
+          <p className="text-xs text-destructive">{String(errors.meanings.message)}</p>
         ) : null}
       </div>
+    );
+  }
 
-      <div className="space-y-2">
-        <Label htmlFor="source">Source</Label>
-        <Input id="source" placeholder="Book, URL, speaker…" {...form.register("source")} />
-      </div>
+  if (id === "synonyms") {
+    return (
+      <StringListField<CreateEntryInput>
+        control={form.control}
+        name="synonyms"
+        label={field.label}
+        addLabel="Add synonym"
+        placeholder={field.placeholder}
+        disabled={submitting}
+      />
+    );
+  }
 
+  if (id === "antonyms") {
+    return (
+      <StringListField<CreateEntryInput>
+        control={form.control}
+        name="antonyms"
+        label={field.label}
+        addLabel="Add antonym"
+        placeholder={field.placeholder}
+        disabled={submitting}
+      />
+    );
+  }
+
+  if (id === "examples") {
+    return (
+      <StringListField<CreateEntryInput>
+        control={form.control}
+        name="examples"
+        label={field.label}
+        addLabel="Add example"
+        placeholder={field.placeholder}
+        disabled={submitting}
+      />
+    );
+  }
+
+  if (id === "commonMistakes") {
+    return (
+      <StringListField<CreateEntryInput>
+        control={form.control}
+        name="commonMistakes"
+        label={field.label}
+        addLabel="Add mistake"
+        placeholder={field.placeholder}
+        disabled={submitting}
+      />
+    );
+  }
+
+  if (id === "tags") {
+    return (
+      <StringListField<CreateEntryInput>
+        control={form.control}
+        name="tags"
+        label={field.label}
+        addLabel="Add tag"
+        placeholder={field.placeholder}
+        disabled={submitting}
+      />
+    );
+  }
+
+  if (id === "noteKind") {
+    return (
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea
-          id="notes"
-          rows={3}
-          placeholder="Extra context"
-          className="resize-y font-mono text-sm"
-          {...form.register("notes")}
+        <Label htmlFor="noteKind">{field.label}</Label>
+        {field.description ? (
+          <p className="text-xs text-muted-foreground">{field.description}</p>
+        ) : null}
+        <Controller
+          control={form.control}
+          name="noteKind"
+          render={({ field: f }) => (
+            <Select
+              value={f.value ?? "None"}
+              onValueChange={(v) => f.onChange(v === "None" ? undefined : v)}
+              onOpenChange={(open) => {
+                if (!open) f.onBlur();
+              }}
+            >
+              <SelectTrigger id="noteKind" className="w-full min-w-0 capitalize">
+                <SelectValue placeholder="Optional" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="None">None</SelectItem>
+                {NOTE_KINDS.map((k) => (
+                  <SelectItem key={k} value={k}>
+                    {noteKindLabels[k]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         />
       </div>
+    );
+  }
 
-      <div className="flex justify-end gap-2">
-        <Button type="button" variant="ghost" onClick={() => router.back()}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Saving…" : "Save entry"}
-        </Button>
-      </div>
-    </form>
-  );
+  return null;
 }

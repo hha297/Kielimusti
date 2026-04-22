@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Kode_Mono } from "next/font/google";
+import { VT323 } from "next/font/google";
 
 import { Providers } from "@/components/providers";
 
 import "./globals.css";
 
-const kodeMono = Kode_Mono({
-  subsets: ["latin"],
-  variable: "--font-kode-mono",
+const vt323 = VT323({
+  subsets: ["latin", "latin-ext"],
+  variable: "--font-vt323",
+  weight: "400",
   display: "swap",
 });
 
@@ -27,10 +28,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${kodeMono.variable} dark h-full antialiased`}
+      className={`${vt323.variable} dark h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full bg-background font-sans text-foreground">
+      <body className="min-h-full bg-background font-sans text-base leading-relaxed text-foreground">
         <Providers>{children}</Providers>
       </body>
     </html>
