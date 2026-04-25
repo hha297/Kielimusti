@@ -10,7 +10,10 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import type { AuthSession } from "@/lib/auth";
 import { cn } from "@/lib/utils";
+
+import { UserMenu } from "./user-menu";
 
 const nav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -19,7 +22,15 @@ const nav = [
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+type SessionUser = NonNullable<AuthSession>["user"];
+
+export function AppShell({
+  children,
+  user,
+}: {
+  children: React.ReactNode;
+  user: SessionUser;
+}) {
   const pathname = usePathname();
 
   return (
@@ -28,7 +39,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="flex h-14 items-center gap-2 border-b border-border/80 px-4">
           <Sparkles className="size-4 text-muted-foreground" aria-hidden />
           <div className="flex flex-col leading-none">
-            <span className="text-lg font-semibold tracking-tight">Kielimuisti</span>
+            <Link href="/dashboard" className="text-lg font-semibold tracking-tight">Kielimuisti</Link>
 
           </div>
         </div>
@@ -55,12 +66,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+        <div className="mt-auto border-t border-border/80 p-2">
+          <UserMenu user={user} />
+        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex flex-col border-b border-border/80 md:hidden">
-          <div className="flex h-12 items-center px-4">
+          <div className="flex h-12 items-center justify-between gap-2 px-4">
             <span className="text-sm font-medium">Kielimuisti</span>
+            <div className="min-w-0 shrink">
+              <UserMenu user={user} />
+            </div>
           </div>
           <nav className="flex gap-1 overflow-x-auto px-2 pb-2">
             {nav.map((item) => {

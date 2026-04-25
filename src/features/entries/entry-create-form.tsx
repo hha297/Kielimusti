@@ -73,13 +73,20 @@ export function EntryCreateForm() {
     }
     const fieldErrors = res.error;
     if (fieldErrors) {
+      let hasFieldErrors = false;
       for (const [key, messages] of Object.entries(fieldErrors)) {
         const msg = messages?.[0];
-        if (msg) {
+        if (!msg) continue;
+        if (key === "auth") {
+          toast.error(msg);
+        } else {
+          hasFieldErrors = true;
           form.setError(key as never, { message: msg });
         }
       }
-      toast.error("Fix the highlighted fields");
+      if (hasFieldErrors) {
+        toast.error("Fix the highlighted fields");
+      }
     }
   }
 

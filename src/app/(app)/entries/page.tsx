@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { LanguageFlag } from "@/components/language-flag";
 import { getWorldLanguage } from "@/constants/world-languages";
-import { listEntriesForDevWorkspace } from "@/features/entries/actions";
+import { listEntriesForCurrentWorkspace } from "@/features/entries/actions";
 import {
   ENTRY_TYPES,
   entryTypeLabels,
@@ -25,7 +25,7 @@ import type { EntryPayload } from "@/types/entry-payload";
 
 const UNASSIGNED_LANG = "__unassigned__";
 
-type EntryRow = Awaited<ReturnType<typeof listEntriesForDevWorkspace>>[number];
+type EntryRow = Awaited<ReturnType<typeof listEntriesForCurrentWorkspace>>[number];
 
 const legacyTypeLabels: Record<string, string> = {
   vocab: "Vocabulary (legacy)",
@@ -387,9 +387,9 @@ export default async function EntriesPage() {
     );
   }
 
-  let rows: Awaited<ReturnType<typeof listEntriesForDevWorkspace>> = [];
+  let rows: Awaited<ReturnType<typeof listEntriesForCurrentWorkspace>> = [];
   try {
-    rows = await listEntriesForDevWorkspace();
+    rows = await listEntriesForCurrentWorkspace();
   } catch {
     return (
       <div className="space-y-6">
