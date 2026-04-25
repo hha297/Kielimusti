@@ -3,7 +3,7 @@
 import { desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-import { ensureDevWorkspace } from "@/db/workspace";
+import { ensureUserWorkspace } from "@/db/workspace";
 import { getDb } from "@/db";
 import { entries } from "@/db/schema";
 import type { CreateEntryInput } from "@/lib/entry-create-schema";
@@ -78,8 +78,13 @@ export async function createEntry(input: CreateEntryInput) {
     return { ok: false as const, error: parsed.error.flatten().fieldErrors };
   }
 
+  const workspace = await ensureUserWorkspace();
+  if (!workspace.ok) {
+    return { ok: false as const, error: { auth: ["You must be signed in."] } };
+  }
+  const { userId, languageSpaceId } = workspace;
+
   const db = getDb();
-  const { userId, languageSpaceId } = await ensureDevWorkspace();
   const data = parsed.data;
 
   const sourceStored = data.source.trim() || null;
@@ -153,9 +158,13 @@ export async function createEntry(input: CreateEntryInput) {
   return { ok: true as const };
 }
 
-export async function listEntriesForDevWorkspace() {
+export async function listEntriesForCurrentWorkspace() {
+  const workspace = await ensureUserWorkspace();
+  if (!workspace.ok) {
+    return [];
+  }
+  const { languageSpaceId } = workspace;
   const db = getDb();
-  const { languageSpaceId } = await ensureDevWorkspace();
 
   return db
     .select({
@@ -174,8 +183,12 @@ export async function listEntriesForDevWorkspace() {
 }
 
 export async function getEntryById(id: string) {
+  const workspace = await ensureUserWorkspace();
+  if (!workspace.ok) {
+    return null;
+  }
+  const { languageSpaceId } = workspace;
   const db = getDb();
-  const { languageSpaceId } = await ensureDevWorkspace();
 
   const row = await db
     .select()
@@ -195,8 +208,12 @@ export async function getEntryById(id: string) {
 }
 
 export async function deleteEntry(id: string) {
+  const workspace = await ensureUserWorkspace();
+  if (!workspace.ok) {
+    return { ok: false as const, error: "unauthorized" as const };
+  }
+  const { languageSpaceId } = workspace;
   const db = getDb();
-  const { languageSpaceId } = await ensureDevWorkspace();
 
   const row = await db
     .select({

@@ -1,36 +1,25 @@
 import { eq } from "drizzle-orm";
 
 import { getDb } from "@/db";
-import { languageSpaces, users } from "@/db/schema";
+import { languageSpaces } from "@/db/schema";
+import { getSession } from "@/lib/auth";
 
-const DEV_EMAIL = "dev@local.language-diary";
+export type WorkspaceResult =
+  | { ok: true; userId: string; languageSpaceId: string }
+  | { ok: false; error: "unauthorized" };
 
 /**
- * Ensures a single dev user and default language space exist.
- * Replaced later with authenticated user + user-created spaces.
+ * Resolves the signed-in user and ensures they have at least one language space
+ * (creates a sensible default if none exist).
  */
-export async function ensureDevWorkspace(): Promise<{
-  userId: string;
-  languageSpaceId: string;
-}> {
-  const db = getDb();
-
-  const existingUser = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, DEV_EMAIL))
-    .limit(1);
-
-  let userId: string;
-  if (existingUser.length === 0) {
-    const [created] = await db
-      .insert(users)
-      .values({ email: DEV_EMAIL, name: "Dev user" })
-      .returning({ id: users.id });
-    userId = created.id;
-  } else {
-    userId = existingUser[0].id;
+export async function ensureUserWorkspace(): Promise<WorkspaceResult> {
+  const session = await getSession();
+  const userId = session?.user?.id;
+  if (!userId) {
+    return { ok: false, error: "unauthorized" };
   }
+
+  const db = getDb();
 
   const existingSpace = await db
     .select()
@@ -43,8 +32,8 @@ export async function ensureDevWorkspace(): Promise<{
       .insert(languageSpaces)
       .values({ userId, name: "Finnish", localeCode: "fi" })
       .returning({ id: languageSpaces.id });
-    return { userId, languageSpaceId: space.id };
+    return { ok: true, userId, languageSpaceId: space.id };
   }
 
-  return { userId, languageSpaceId: existingSpace[0].id };
+  return { ok: true, userId, languageSpaceId: existingSpace[0].id };
 }
