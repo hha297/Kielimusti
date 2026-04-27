@@ -50,7 +50,7 @@ const EMPTY_FAVORITES: string[] = [];
 const favoriteListeners = new Set<() => void>();
 
 function subscribeFavoriteLanguages(onStoreChange: () => void) {
-  if (typeof window === "undefined") return () => {};
+  if (typeof window === "undefined") return () => { };
   const onStorage = (e: StorageEvent) => {
     if (e.key === FAVORITE_LANGUAGES_KEY || e.key === null) onStoreChange();
   };
@@ -248,11 +248,11 @@ export function LanguageSelect<T extends FieldValues>({
     const base = !q
       ? WORLD_LANGUAGES
       : WORLD_LANGUAGES.filter(
-          (l) =>
-            l.name.toLowerCase().includes(q) ||
-            l.code.includes(q) ||
-            l.flagCountry.toLowerCase().includes(q),
-        );
+        (l) =>
+          l.name.toLowerCase().includes(q) ||
+          l.code.includes(q) ||
+          l.flagCountry.toLowerCase().includes(q),
+      );
     return [...base].sort((a, b) => {
       const ra = favoriteRank(a.code);
       const rb = favoriteRank(b.code);
@@ -299,7 +299,7 @@ export function LanguageSelect<T extends FieldValues>({
                 aria-haspopup="listbox"
                 aria-invalid={Boolean(error)}
                 className={cn(
-                  "h-auto min-h-8 w-full justify-between gap-2 py-1.5 pr-2 pl-2.5 font-normal",
+                  "h-auto min-h-10 w-full justify-between gap-2 rounded-[1.25rem] py-2 pr-2 pl-3 font-normal shadow-[var(--shadow-float)]",
                   error && "border-destructive/80",
                 )}
                 onClick={() => {
@@ -312,11 +312,11 @@ export function LanguageSelect<T extends FieldValues>({
               >
                 <span className="flex min-w-0 flex-1 items-center gap-2 text-left">
                   {!label ? (
-                    <span className="text-muted-foreground">Select language…</span>
+                    <span className="text-muted-foreground/70">Select language…</span>
                   ) : (
                     <>
                       <LanguageFlag countryCode={flagCc} title={label} className="h-3! w-[18px]!" />
-                      <span className="truncate font-medium text-foreground">{label}</span>
+                      <span className="truncate font-normal text-foreground">{label}</span>
                     </>
                   )}
                 </span>
@@ -327,7 +327,7 @@ export function LanguageSelect<T extends FieldValues>({
 
               {open ? (
                 <div
-                  className="absolute top-full right-0 left-0 z-50 mt-1 w-full overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10"
+                  className="absolute top-full right-0 left-0 z-50 mt-1 w-full overflow-hidden rounded-[1.25rem] border border-border bg-popover text-popover-foreground shadow-[var(--shadow-elevated)]"
                   role="listbox"
                 >
                   <div className="border-b border-border p-2" onPointerDown={(e) => e.stopPropagation()}>
@@ -337,7 +337,7 @@ export function LanguageSelect<T extends FieldValues>({
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       disabled={disabled}
-                      className="h-8 w-full"
+                      className="h-8 w-full shadow-none"
                       autoComplete="off"
                       autoFocus
                     />

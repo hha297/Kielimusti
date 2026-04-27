@@ -36,8 +36,11 @@ export const PasswordField = React.forwardRef<HTMLInputElement, PasswordFieldPro
             type="button"
             tabIndex={-1}
             disabled={disabled}
+            onMouseDown={(e) => {
+              e.preventDefault();
+            }}
             onClick={() => setVisible((v) => !v)}
-            className="absolute right-1 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+            className="absolute top-1/2 right-2 z-10 flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
             aria-label={visible ? "Hide password" : "Show password"}
             aria-pressed={visible}
           >

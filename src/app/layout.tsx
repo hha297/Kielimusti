@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { VT323 } from "next/font/google";
-
 import { Providers } from "@/components/providers";
-
 import "./globals.css";
+
 
 const vt323 = VT323({
   subsets: ["latin", "latin-ext"],
@@ -28,10 +27,11 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${vt323.variable} dark h-full antialiased`}
+      className={`${vt323.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full bg-background font-sans text-base leading-relaxed text-foreground">
+      <body className="min-h-full bg-background font-sans text-base font-normal leading-relaxed text-foreground">
+
         <Providers>{children}</Providers>
       </body>
     </html>

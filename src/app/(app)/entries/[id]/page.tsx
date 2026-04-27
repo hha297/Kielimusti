@@ -97,7 +97,7 @@ export default async function EntryDetailPage({
           <p className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
             {typeLine} · {entry.status}
           </p>
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-5xl font-semibold uppercase tracking-wider">
             {entry.title?.trim() || "Untitled"}
           </h1>
           {entry.languages && entry.languages.length > 0 ? (

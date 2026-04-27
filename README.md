@@ -69,12 +69,14 @@ Then run `pnpm db:push` again (in a real terminal if Drizzle asks follow-up ques
 
 **Option B — generate + migrate (versioned SQL migrations)**
 
+Use this when you want SQL files and `drizzle-kit migrate` (e.g. production or team review). Drizzle writes to `./drizzle/` (see `drizzle.config.ts`); that folder is **not** required if you only use **Option A** (`db:push`).
+
 ```bash
-pnpm db:generate   # writes SQL under drizzle/ from schema drift
-pnpm db:migrate  # applies pending migrations (requires drizzle migration setup / DB state that matches the journal)
+pnpm db:generate   # creates/updates drizzle/ (SQL + meta journal) from schema drift
+pnpm db:migrate    # applies pending migrations
 ```
 
-A baseline migration `drizzle/0000_better-auth.sql` is included for **empty** databases. If `db:migrate` fails because tables already exist, prefer `db:push` once to align the live schema, then continue with generate/migrate for future changes.
+If `db:migrate` fails because the database already has tables from an older ad-hoc setup, align once with `pnpm db:push` (or the reset commands above), then continue with generate/migrate for future changes.
 
 ## Auth behavior
 

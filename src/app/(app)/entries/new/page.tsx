@@ -8,7 +8,7 @@ export default function NewEntryPage() {
     return (
       <div className="space-y-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">New entry</h1>
+          <h1 className="text-5xl font-semibold uppercase tracking-wider">New entry</h1>
           <p className="text-sm text-muted-foreground">
             Configure <span className="font-mono">DATABASE_URL</span> before creating entries.
           </p>
@@ -23,7 +23,7 @@ export default function NewEntryPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">New entry</h1>
+        <h1 className="text-5xl font-semibold uppercase tracking-wider">New entry</h1>
         <p className="text-sm text-muted-foreground">
           Minimal capture — type-specific fields will refine this flow later.
         </p>

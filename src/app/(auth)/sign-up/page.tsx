@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { PasswordField } from "@/components/password-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -49,9 +50,9 @@ export default function SignUpPage() {
   }
 
   return (
-    <Card className="border-border/80 bg-card/60 shadow-none backdrop-blur-sm">
+    <Card className="border-border/80 bg-card/60 shadow-none backdrop-blur-sm px-4 py-6">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-semibold tracking-tight">Create account</CardTitle>
+        <CardTitle className="text-5xl font-semibold uppercase tracking-wider">Create account</CardTitle>
         <CardDescription className="text-muted-foreground">
           Choose a display name, email, username, and password.
         </CardDescription>
@@ -86,13 +87,13 @@ export default function SignUpPage() {
               <p className="text-sm text-destructive">{errors.username.message}</p>
             ) : null}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
+          <div className="space-y-1.5">
+            <PasswordField
+              label="Password"
               id="password"
-              type="password"
               autoComplete="new-password"
               disabled={isSubmitting}
+              aria-invalid={Boolean(errors.password)}
               {...register("password")}
             />
             {errors.password ? (
@@ -100,13 +101,13 @@ export default function SignUpPage() {
             ) : null}
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col gap-4">
+        <CardFooter className="flex flex-col gap-4 mt-8">
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Creating account…" : "Sign up"}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/sign-in" className="text-foreground underline-offset-4 hover:underline">
+            <Link href="/sign-in" className="underline-offset-4 hover:underline text-light-signal-orange">
               Sign in
             </Link>
           </p>
