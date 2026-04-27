@@ -243,7 +243,7 @@ function FormFieldBlock({
           id="usageNotes"
           rows={3}
           placeholder={field.placeholder}
-          className="resize-y font-mono text-sm"
+          className="font-mono text-sm"
           disabled={submitting}
           {...form.register("usageNotes")}
         />
@@ -276,7 +276,7 @@ function FormFieldBlock({
           id="notes"
           rows={3}
           placeholder={field.placeholder}
-          className="resize-y font-mono text-sm"
+          className="font-mono text-sm"
           disabled={submitting}
           {...form.register("notes")}
         />

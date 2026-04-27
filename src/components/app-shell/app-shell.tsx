@@ -34,16 +34,20 @@ export function AppShell({
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
-      <aside className="hidden w-56 shrink-0 border-r border-border/80 bg-card/40 backdrop-blur-sm md:flex md:flex-col">
-        <div className="flex h-14 items-center gap-2 border-b border-border/80 px-4">
-          <Sparkles className="size-4 text-muted-foreground" aria-hidden />
+    <div className="flex min-h-screen bg-background text-foreground md:p-4">
+      <aside className="hidden w-56 shrink-0 flex-col rounded-[length:var(--card-radius)] border border-border bg-white shadow-[var(--shadow-float)] md:m-0 md:flex">
+        <div className="flex h-14 items-center gap-2 border-b border-border px-4">
+          <Sparkles className="size-4 text-light-signal-orange" aria-hidden />
           <div className="flex flex-col leading-none">
-            <Link href="/dashboard" className="text-lg font-semibold tracking-tight">Kielimuisti</Link>
-
+            <Link
+              href="/dashboard"
+              className="text-lg font-normal tracking-[-0.02em] text-foreground"
+            >
+              Kielimuisti
+            </Link>
           </div>
         </div>
-        <nav className="flex flex-1 flex-col gap-0.5 p-2">
+        <nav className="flex flex-1 flex-col gap-2 p-2">
           {nav.map((item) => {
             const active =
               pathname === item.href ||
@@ -54,10 +58,10 @@ export function AppShell({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2 rounded-md px-2.5 py-2 text-sm transition-colors",
+                  "flex items-center gap-2 rounded-full px-4 py-2 text-sm font-normal tracking-[-0.02em] transition-colors",
                   active
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                    ? "bg-[#141413] text-[#F3F0EE] shadow-[var(--shadow-float)]"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
                 <Icon className="size-4 opacity-80" aria-hidden />
@@ -66,20 +70,20 @@ export function AppShell({
             );
           })}
         </nav>
-        <div className="mt-auto border-t border-border/80 p-2">
+        <div className="mt-auto border-t border-border p-2">
           <UserMenu user={user} />
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex flex-col border-b border-border/80 md:hidden">
+      <div className="flex min-w-0 flex-1 flex-col md:pl-6">
+        <header className="sticky top-0 z-40 flex flex-col border-b border-border bg-[#FCFBFA]/95 shadow-[var(--shadow-float)] backdrop-blur-sm md:hidden">
           <div className="flex h-12 items-center justify-between gap-2 px-4">
-            <span className="text-sm font-medium">Kielimuisti</span>
+            <span className="text-sm font-normal tracking-[-0.02em] text-foreground">Kielimuisti</span>
             <div className="min-w-0 shrink">
               <UserMenu user={user} />
             </div>
           </div>
-          <nav className="flex gap-1 overflow-x-auto px-2 pb-2">
+          <nav className="flex gap-2 overflow-x-auto px-3 pb-3">
             {nav.map((item) => {
               const active =
                 pathname === item.href ||
@@ -90,10 +94,10 @@ export function AppShell({
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs transition-colors",
+                    "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-normal tracking-[-0.02em] transition-colors",
                     active
-                      ? "bg-muted text-foreground"
-                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                      ? "bg-[#141413] text-[#F3F0EE]"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <Icon className="size-3.5 opacity-80" aria-hidden />
@@ -103,7 +107,7 @@ export function AppShell({
             })}
           </nav>
         </header>
-        <main className="flex-1 px-4 py-6 md:px-8">{children}</main>
+        <main className="flex-1 px-4 py-6 md:px-2 md:py-8">{children}</main>
       </div>
     </div>
   );

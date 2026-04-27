@@ -48,7 +48,7 @@ export function ProfileView({ user }: { user: ProfileUserPayload }) {
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
+        <h1 className="text-5xl font-semibold uppercase tracking-wider">Profile</h1>
         <p className="mt-1 text-sm text-muted-foreground">Account details and security.</p>
       </div>
 

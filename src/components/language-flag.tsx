@@ -43,7 +43,10 @@ export function LanguageFlag({ countryCode, className, title }: LanguageFlagProp
       <Flag
         aria-hidden={title ? undefined : true}
         aria-label={title}
-        className={cn("h-4 w-6 shrink-0 overflow-hidden rounded-sm shadow-sm ring-1 ring-black/5 dark:ring-white/10", className)}
+        className={cn(
+          "h-4 w-6 shrink-0 overflow-hidden rounded-full shadow-[var(--shadow-float)] ring-1 ring-black/10",
+          className,
+        )}
       />
     </span>
   );

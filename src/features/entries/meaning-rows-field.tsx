@@ -147,7 +147,7 @@ function SortableMeaningRow({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex flex-col gap-2 rounded-lg border border-transparent p-1 sm:grid sm:items-center sm:gap-x-2",
+        "flex flex-col gap-2 rounded-[1.25rem] border border-transparent p-1 sm:grid sm:items-center sm:gap-x-2",
         isDragging && "z-10 border-border bg-muted/40 shadow-md ring-1 ring-border",
       )}
     >

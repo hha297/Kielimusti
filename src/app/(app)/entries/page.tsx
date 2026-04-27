@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { format } from "date-fns";
-import { Globe } from "lucide-react";
+import { Globe, PlusIcon } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -109,7 +109,7 @@ function EntryTypeTable({ rows, entryType }: { rows: EntryRow[]; entryType: stri
 
   if (kind === "vocabulary") {
     return (
-      <div className="overflow-x-auto rounded-lg border border-border/80">
+      <div className="overflow-x-auto rounded-[1.25rem] border border-border/80">
         <Table>
           <TableHeader>
             <TableRow>
@@ -158,7 +158,7 @@ function EntryTypeTable({ rows, entryType }: { rows: EntryRow[]; entryType: stri
 
   if (kind === "grammar") {
     return (
-      <div className="overflow-x-auto rounded-lg border border-border/80">
+      <div className="overflow-x-auto rounded-[1.25rem] border border-border/80">
         <Table>
           <TableHeader>
             <TableRow>
@@ -199,7 +199,7 @@ function EntryTypeTable({ rows, entryType }: { rows: EntryRow[]; entryType: stri
 
   if (kind === "note") {
     return (
-      <div className="overflow-x-auto rounded-lg border border-border/80">
+      <div className="overflow-x-auto rounded-[1.25rem] border border-border/80">
         <Table>
           <TableHeader>
             <TableRow>
@@ -239,7 +239,7 @@ function EntryTypeTable({ rows, entryType }: { rows: EntryRow[]; entryType: stri
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border/80">
+    <div className="overflow-x-auto rounded-[1.25rem] border border-border/80">
       <Table>
         <TableHeader>
           <TableRow>
@@ -338,7 +338,7 @@ function EntriesGroupedTables({ rows }: { rows: EntryRow[] }) {
 
 function DatabaseSetup() {
   return (
-    <div className="rounded-lg border border-dashed border-border/80 bg-muted/20 p-8 text-center">
+    <div className="rounded-[1.25rem] border border-dashed border-border/80 bg-muted/20 p-8 text-center">
       <p className="text-sm text-muted-foreground">
         Add{" "}
         <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
@@ -360,7 +360,7 @@ function DatabaseSetup() {
 
 function DatabaseError() {
   return (
-    <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-6 text-sm text-muted-foreground">
+    <div className="rounded-[1.25rem] border border-destructive/40 bg-destructive/5 p-6 text-sm text-muted-foreground">
       Could not reach the database. Check <span className="text-foreground">DATABASE_URL</span>{" "}
       and that Postgres is running.
     </div>
@@ -373,12 +373,13 @@ export default async function EntriesPage() {
       <div className="space-y-6">
         <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Entries</h1>
+            <h1 className="text-5xl font-semibold uppercase tracking-wider">Entries</h1>
             <p className="text-sm text-muted-foreground">
               Your knowledge items for the active language space.
             </p>
           </div>
           <Button disabled variant="secondary">
+            <PlusIcon className="size-4" />
             New entry
           </Button>
         </header>
@@ -395,10 +396,11 @@ export default async function EntriesPage() {
       <div className="space-y-6">
         <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Entries</h1>
+            <h1 className="text-5xl font-semibold uppercase tracking-wider">Entries</h1>
             <p className="text-sm text-muted-foreground">Browse and filter saved knowledge.</p>
           </div>
           <Link href="/entries/new" className={buttonVariants({ variant: "secondary" })}>
+            <PlusIcon className="size-4" />
             New entry
           </Link>
         </header>
@@ -411,12 +413,13 @@ export default async function EntriesPage() {
     <div className="space-y-6">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Entries</h1>
+          <h1 className="text-5xl font-semibold uppercase tracking-wider">Entries</h1>
           <p className="text-sm text-muted-foreground">
             Browse by language and type; open a row for full detail.
           </p>
         </div>
         <Link href="/entries/new" className={buttonVariants()}>
+          <PlusIcon className="size-4" />
           New entry
         </Link>
       </header>

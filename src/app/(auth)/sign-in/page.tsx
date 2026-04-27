@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { PasswordField } from "@/components/password-field";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -51,9 +52,9 @@ function SignInForm() {
   }
 
   return (
-    <Card className="border-border/80 bg-card/60 shadow-none backdrop-blur-sm">
+    <Card className="border-border/80 bg-card/60 shadow-none backdrop-blur-sm px-4 py-6">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-semibold tracking-tight">Sign in</CardTitle>
+        <CardTitle className="text-5xl font-semibold uppercase tracking-wider">Sign in</CardTitle>
         <CardDescription className="text-muted-foreground">
           Use your email or username with your password.
         </CardDescription>
@@ -73,11 +74,10 @@ function SignInForm() {
               <p className="text-sm text-destructive">{errors.emailOrUsername.message}</p>
             ) : null}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
+          <div className="space-y-1.5">
+            <PasswordField
+              label="Password"
               id="password"
-              type="password"
               autoComplete="current-password"
               disabled={isSubmitting}
               aria-invalid={Boolean(errors.password)}
@@ -88,14 +88,14 @@ function SignInForm() {
             ) : null}
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col gap-4 mt-8">
+        <CardFooter className="flex flex-col gap-4  mt-8">
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Signing in…" : "Sign in"}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
-            No account?{" "}
-            <Link href="/sign-up" className="text-foreground underline-offset-4 hover:underline">
-              Create one
+            Don&apos;t have an account?{" "}
+            <Link href="/sign-up" className="underline-offset-4 hover:underline text-light-signal-orange">
+              Sign up
             </Link>
           </p>
         </CardFooter>
@@ -110,7 +110,7 @@ export default function SignInPage() {
       fallback={
         <Card className="border-border/80 bg-card/60 shadow-none backdrop-blur-sm">
           <CardHeader>
-            <CardTitle className="text-2xl font-semibold tracking-tight">Sign in</CardTitle>
+            <CardTitle className="text-5xl font-semibold uppercase tracking-wider">Sign in</CardTitle>
             <CardDescription className="text-muted-foreground">Loading…</CardDescription>
           </CardHeader>
         </Card>

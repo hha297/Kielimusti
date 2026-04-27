@@ -17,6 +17,7 @@ export function sanitizeEntryHtml(html: string): string {
     ALLOWED_TAGS: [
       "p",
       "br",
+      "hr",
       "strong",
       "b",
       "em",
@@ -29,6 +30,7 @@ export function sanitizeEntryHtml(html: string): string {
       "blockquote",
       "code",
       "pre",
+      "h1",
       "h2",
       "h3",
     ],

@@ -27,7 +27,7 @@ export function UserMenu({ user }: { user: SessionUser }) {
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger
         className={cn(
-          "flex h-9 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-left text-xs text-muted-foreground outline-none transition-colors hover:bg-muted/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring",
+          "flex h-10 w-full cursor-pointer items-center gap-2 rounded-full border border-transparent px-3 text-left text-xs font-normal text-muted-foreground outline-none transition-colors hover:border-border hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/40",
         )}
       >
         <UserRound className="size-4 shrink-0 opacity-80" aria-hidden />
