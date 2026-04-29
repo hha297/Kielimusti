@@ -41,11 +41,75 @@ import { createEntrySchema } from "@/lib/entry-create-schema";
 import { NOTE_KINDS } from "@/types/entry-payload";
 import { getDefaultEntryFormValues } from "@/types/entry-form";
 
+type FormSection = {
+  id: string;
+  title: string;
+  description?: string;
+  fields: FormFieldConfig[];
+};
+
+function groupFieldsIntoSections(fields: FormFieldConfig[]): FormSection[] {
+  const byId = new Map(fields.map((field) => [field.id, field]));
+  const used = new Set<string>();
+  const sections: FormSection[] = [];
+
+  const pushSection = (
+    id: string,
+    title: string,
+    description: string | undefined,
+    fieldIds: FormFieldConfig["id"][],
+  ) => {
+    const sectionFields = fieldIds
+      .map((fieldId) => byId.get(fieldId))
+      .filter((field): field is FormFieldConfig => Boolean(field));
+    if (sectionFields.length === 0) return;
+    sectionFields.forEach((field) => used.add(field.id));
+    sections.push({ id, title, description, fields: sectionFields });
+  };
+
+  pushSection("core", "Details", "Primary information for this entry.", [
+    "type",
+    "language",
+    "title",
+    "partOfSpeech",
+    "structure",
+    "noteKind",
+  ]);
+
+  pushSection("content", "Content", "Main learning content and explanations.", [
+    "content",
+    "meanings",
+    "usageNotes",
+    "notes",
+  ]);
+
+  pushSection("supporting", "Supporting Details", "Examples, relationships, and metadata.", [
+    "synonyms",
+    "antonyms",
+    "examples",
+    "commonMistakes",
+    "tags",
+    "source",
+  ]);
+
+  const remaining = fields.filter((field) => !used.has(field.id));
+  if (remaining.length > 0) {
+    sections.push({
+      id: "other",
+      title: "Additional Fields",
+      description: "Extra details for this entry type.",
+      fields: remaining,
+    });
+  }
+
+  return sections;
+}
+
 export function EntryCreateForm() {
   const router = useRouter();
   const form = useForm<CreateEntryInput>({
     resolver: zodResolver(createEntrySchema) as Resolver<CreateEntryInput>,
-    defaultValues: getDefaultEntryFormValues("note"),
+    defaultValues: getDefaultEntryFormValues("vocabulary"),
   });
 
   const entryType = useWatch({ control: form.control, name: "type" });
@@ -93,23 +157,39 @@ export function EntryCreateForm() {
   const submitting = form.formState.isSubmitting;
   const errors = form.formState.errors;
   const fieldsConfig = getFieldConfigsForType(entryType);
+  const formSections = groupFieldsIntoSections(fieldsConfig);
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto max-w-2xl space-y-8">
-      <div className="space-y-6">
-        {fieldsConfig.map((field) => (
-          <FormFieldBlock
-            key={`${entryType}-${field.id}`}
-            field={field}
-            form={form}
-            meaningRows={meaningRows}
-            submitting={submitting}
-            errors={errors}
-          />
+    <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto w-full max-w-4xl space-y-6">
+      <div className="space-y-5">
+        {formSections.map((section) => (
+          <section
+            key={`${entryType}-${section.id}`}
+            className="space-y-4 rounded-[1.25rem] border border-border bg-white p-5 shadow-[var(--shadow-float)]"
+          >
+            <div className="space-y-1">
+              <h2 className="text-base font-semibold tracking-tight">{section.title}</h2>
+              {section.description ? (
+                <p className="text-sm text-muted-foreground">{section.description}</p>
+              ) : null}
+            </div>
+            <div className="space-y-5">
+              {section.fields.map((field) => (
+                <FormFieldBlock
+                  key={`${entryType}-${section.id}-${field.id}`}
+                  field={field}
+                  form={form}
+                  meaningRows={meaningRows}
+                  submitting={submitting}
+                  errors={errors}
+                />
+              ))}
+            </div>
+          </section>
         ))}
       </div>
 
-      <div className="flex justify-end gap-2 border-t border-border/60 pt-6">
+      <div className="flex justify-end gap-2 rounded-[1.25rem] border border-border bg-white p-4 shadow-[var(--shadow-float)]">
         <Button type="button" variant="ghost" onClick={() => router.back()}>
           Cancel
         </Button>
@@ -155,7 +235,7 @@ function FormFieldBlock({
                 if (!open) f.onBlur();
               }}
             >
-              <SelectTrigger id="entry-type" className="w-full min-w-0 capitalize">
+              <SelectTrigger id="entry-type" className="w-full min-w-0">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -417,7 +497,7 @@ function FormFieldBlock({
                 if (!open) f.onBlur();
               }}
             >
-              <SelectTrigger id="noteKind" className="w-full min-w-0 capitalize">
+              <SelectTrigger id="noteKind" className="w-full min-w-0">
                 <SelectValue placeholder="Optional" />
               </SelectTrigger>
               <SelectContent>
