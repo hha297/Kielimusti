@@ -209,17 +209,35 @@ function LanguageListRow({
 }
 
 type LanguageSelectProps<T extends FieldValues> = {
-  control: Control<T>;
-  name: FieldPath<T>;
   disabled?: boolean;
   error?: string;
-};
+  label?: string;
+  hint?: string;
+  hideHeader?: boolean;
+  className?: string;
+} & (
+  | {
+      control: Control<T>;
+      name: FieldPath<T>;
+      value?: never;
+      onValueChange?: never;
+    }
+  | {
+      control?: never;
+      name?: never;
+      value: string;
+      onValueChange: (value: string) => void;
+    }
+);
 
 export function LanguageSelect<T extends FieldValues>({
-  control,
-  name,
   disabled,
   error,
+  label = "Language",
+  hint = "Entry is listed under this language.",
+  hideHeader = false,
+  className,
+  ...props
 }: LanguageSelectProps<T>) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -275,16 +293,127 @@ export function LanguageSelect<T extends FieldValues>({
   }, [filteredSorted, isFavorite]);
 
   return (
-    <div className="w-full space-y-2" ref={rootRef}>
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-        <Label>Language</Label>
-        <p className="text-xs text-muted-foreground">Entry is listed under this language.</p>
-      </div>
-      <Controller
-        control={control}
-        name={name}
-        render={({ field }) => {
-          const code = (field.value as string | undefined) ?? "";
+    <div className={cn("w-full space-y-2", className)} ref={rootRef}>
+      {hideHeader ? null : (
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <Label>{label}</Label>
+          <p className="text-xs text-muted-foreground">{hint}</p>
+        </div>
+      )}
+      {"control" in props && props.control && props.name ? (
+        <Controller
+          control={props.control}
+          name={props.name}
+          render={({ field }) => {
+            const code = (field.value as string | undefined) ?? "";
+            const current = code ? getWorldLanguage(code) : undefined;
+            const label = current?.name ?? (code ? code : null);
+            const flagCc = current?.flagCountry ?? "UN";
+
+            return (
+              <div className="relative w-full">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={disabled}
+                  aria-expanded={open}
+                  aria-haspopup="listbox"
+                  aria-invalid={Boolean(error)}
+                  className={cn(
+                    "h-auto min-h-10 w-full justify-between gap-2 rounded-[1.25rem] py-2 pr-2 pl-3 font-normal shadow-[var(--shadow-float)]",
+                    error && "border-destructive/80",
+                  )}
+                  onClick={() => {
+                    if (open) {
+                      closeDropdown();
+                    } else {
+                      setOpen(true);
+                    }
+                  }}
+                >
+                  <span className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                    {!label ? (
+                      <span className="text-muted-foreground/70">Select language…</span>
+                    ) : (
+                      <>
+                        <LanguageFlag countryCode={flagCc} title={label} className="h-3! w-[18px]!" />
+                        <span className="truncate font-normal text-foreground">{label}</span>
+                      </>
+                    )}
+                  </span>
+                  <ChevronDownIcon
+                    className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")}
+                  />
+                </Button>
+
+                {open ? (
+                  <div
+                    className="absolute top-full right-0 left-0 z-50 mt-1 w-full overflow-hidden rounded-[1.25rem] border border-border bg-popover text-popover-foreground shadow-[var(--shadow-elevated)]"
+                    role="listbox"
+                  >
+                    <div className="border-b border-border p-2" onPointerDown={(e) => e.stopPropagation()}>
+                      <Input
+                        type="search"
+                        placeholder="Search languages…"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        disabled={disabled}
+                        className="h-8 w-full shadow-none"
+                        autoComplete="off"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="max-h-64 overflow-y-auto p-1">
+                      {filteredSorted.length === 0 ? (
+                        <p className="px-2 py-6 text-center text-sm text-muted-foreground">No matches.</p>
+                      ) : (
+                        <ul className="space-y-0.5">
+                          {favoriteLanguages.map((lang) => (
+                            <LanguageListRow
+                              key={lang.code}
+                              lang={lang}
+                              selectedCode={code}
+                              disabled={disabled}
+                              fieldOnChange={field.onChange}
+                              onPick={closeDropdown}
+                              isFavorite={isFavorite}
+                              toggleFavorite={toggleFavorite}
+                            />
+                          ))}
+                          {favoriteLanguages.length > 0 && otherLanguages.length > 0 ? (
+                            <li
+                              className="list-none py-1.5"
+                              role="separator"
+                              aria-orientation="horizontal"
+                            >
+                              <div className="h-px w-full bg-border" />
+                            </li>
+                          ) : null}
+                          {otherLanguages.map((lang) => (
+                            <LanguageListRow
+                              key={lang.code}
+                              lang={lang}
+                              selectedCode={code}
+                              disabled={disabled}
+                              fieldOnChange={field.onChange}
+                              onPick={closeDropdown}
+                              isFavorite={isFavorite}
+                              toggleFavorite={toggleFavorite}
+                            />
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            );
+          }}
+        />
+      ) : (
+        (() => {
+          const controlled = props as { value: string; onValueChange: (value: string) => void };
+          const code = controlled.value;
           const current = code ? getWorldLanguage(code) : undefined;
           const label = current?.name ?? (code ? code : null);
           const flagCc = current?.flagCountry ?? "UN";
@@ -353,7 +482,7 @@ export function LanguageSelect<T extends FieldValues>({
                             lang={lang}
                             selectedCode={code}
                             disabled={disabled}
-                            fieldOnChange={field.onChange}
+                            fieldOnChange={controlled.onValueChange}
                             onPick={closeDropdown}
                             isFavorite={isFavorite}
                             toggleFavorite={toggleFavorite}
@@ -374,7 +503,7 @@ export function LanguageSelect<T extends FieldValues>({
                             lang={lang}
                             selectedCode={code}
                             disabled={disabled}
-                            fieldOnChange={field.onChange}
+                            fieldOnChange={controlled.onValueChange}
                             onPick={closeDropdown}
                             isFavorite={isFavorite}
                             toggleFavorite={toggleFavorite}
@@ -387,8 +516,8 @@ export function LanguageSelect<T extends FieldValues>({
               ) : null}
             </div>
           );
-        }}
-      />
+        })()
+      )}
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
     </div>
   );

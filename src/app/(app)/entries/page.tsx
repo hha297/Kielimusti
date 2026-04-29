@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { LanguageFlag } from "@/components/language-flag";
+import { Header } from "@/components/header";
 import { getWorldLanguage } from "@/constants/world-languages";
 import { listEntriesForCurrentWorkspace } from "@/features/entries/actions";
 import {
@@ -109,7 +110,7 @@ function EntryTypeTable({ rows, entryType }: { rows: EntryRow[]; entryType: stri
 
   if (kind === "vocabulary") {
     return (
-      <div className="overflow-x-auto rounded-[1.25rem] border border-border/80">
+      <div className="overflow-x-auto rounded-[1.25rem] border border-border bg-white px-4 py-3 shadow-[var(--shadow-float)]">
         <Table>
           <TableHeader>
             <TableRow>
@@ -126,7 +127,7 @@ function EntryTypeTable({ rows, entryType }: { rows: EntryRow[]; entryType: stri
               const payload = readPayload(row.payload);
               return (
                 <TableRow key={row.id}>
-                  <TableCell className="align-top">
+                  <TableCell>
                     <Link
                       href={`/entries/${row.id}`}
                       className="font-medium text-foreground hover:underline"
@@ -134,17 +135,17 @@ function EntryTypeTable({ rows, entryType }: { rows: EntryRow[]; entryType: stri
                       {row.title?.trim() || "Untitled"}
                     </Link>
                   </TableCell>
-                  <TableCell className="max-w-[220px] align-top text-sm">
+                  <TableCell className="max-w-[220px] text-sm">
                     <PreviewText text={vocabularyMeaningPreview(row.meaning)} />
                   </TableCell>
-                  <TableCell className="max-w-[200px] align-top text-sm">
+                  <TableCell className="max-w-[200px] text-sm">
                     <PreviewText text={joinList(payload?.synonyms)} />
                   </TableCell>
-                  <TableCell className="max-w-[200px] align-top text-sm">
+                  <TableCell className="max-w-[200px] text-sm">
                     <PreviewText text={joinList(payload?.antonyms)} />
                   </TableCell>
-                  <TableCell className="align-top text-muted-foreground">{row.status}</TableCell>
-                  <TableCell className="align-top text-right font-mono text-xs text-muted-foreground">
+                  <TableCell className="text-muted-foreground capitalize">{row.status}</TableCell>
+                  <TableCell className="text-right font-mono text-xs text-muted-foreground">
                     {format(row.updatedAt, "yyyy-MM-dd HH:mm")}
                   </TableCell>
                 </TableRow>
@@ -158,7 +159,7 @@ function EntryTypeTable({ rows, entryType }: { rows: EntryRow[]; entryType: stri
 
   if (kind === "grammar") {
     return (
-      <div className="overflow-x-auto rounded-[1.25rem] border border-border/80">
+      <div className="overflow-x-auto rounded-[1.25rem] border border-border bg-white p-3 shadow-[var(--shadow-float)]">
         <Table>
           <TableHeader>
             <TableRow>
@@ -199,7 +200,7 @@ function EntryTypeTable({ rows, entryType }: { rows: EntryRow[]; entryType: stri
 
   if (kind === "note") {
     return (
-      <div className="overflow-x-auto rounded-[1.25rem] border border-border/80">
+      <div className="overflow-x-auto rounded-[1.25rem] border border-border bg-white p-3 shadow-[var(--shadow-float)]">
         <Table>
           <TableHeader>
             <TableRow>
@@ -239,7 +240,7 @@ function EntryTypeTable({ rows, entryType }: { rows: EntryRow[]; entryType: stri
   }
 
   return (
-    <div className="overflow-x-auto rounded-[1.25rem] border border-border/80">
+    <div className="overflow-x-auto rounded-[1.25rem] border border-border bg-white p-3 shadow-[var(--shadow-float)]">
       <Table>
         <TableHeader>
           <TableRow>
@@ -370,19 +371,18 @@ function DatabaseError() {
 export default async function EntriesPage() {
   if (!isDatabaseConfigured()) {
     return (
-      <div className="space-y-6">
-        <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-5xl font-semibold uppercase tracking-wider">Entries</h1>
-            <p className="text-sm text-muted-foreground">
-              Your knowledge items for the active language space.
-            </p>
-          </div>
-          <Button disabled variant="secondary">
-            <PlusIcon className="size-4" />
-            New entry
-          </Button>
-        </header>
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+        <Header
+          eyebrow="Library"
+          title="Entries"
+          description="Your knowledge items for the active language space."
+          action={
+            <Button disabled variant="secondary">
+              <PlusIcon className="size-4" />
+              New entry
+            </Button>
+          }
+        />
         <DatabaseSetup />
       </div>
     );
@@ -393,36 +393,36 @@ export default async function EntriesPage() {
     rows = await listEntriesForCurrentWorkspace();
   } catch {
     return (
-      <div className="space-y-6">
-        <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-5xl font-semibold uppercase tracking-wider">Entries</h1>
-            <p className="text-sm text-muted-foreground">Browse and filter saved knowledge.</p>
-          </div>
-          <Link href="/entries/new" className={buttonVariants({ variant: "secondary" })}>
-            <PlusIcon className="size-4" />
-            New entry
-          </Link>
-        </header>
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+        <Header
+          eyebrow="Library"
+          title="Entries"
+          description="Browse and filter saved knowledge."
+          action={
+            <Link href="/entries/new" className={buttonVariants({ variant: "secondary" })}>
+              <PlusIcon className="size-4" />
+              New entry
+            </Link>
+          }
+        />
         <DatabaseError />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-5xl font-semibold uppercase tracking-wider">Entries</h1>
-          <p className="text-sm text-muted-foreground">
-            Browse by language and type; open a row for full detail.
-          </p>
-        </div>
-        <Link href="/entries/new" className={buttonVariants()}>
-          <PlusIcon className="size-4" />
-          New entry
-        </Link>
-      </header>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+      <Header
+        eyebrow="Library"
+        title="Entries"
+        description="Browse by language and type; open a row for full detail."
+        action={
+          <Link href="/entries/new" className={buttonVariants()}>
+            <PlusIcon className="size-4" />
+            New entry
+          </Link>
+        }
+      />
 
       {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">

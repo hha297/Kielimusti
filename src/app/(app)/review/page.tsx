@@ -1,10 +1,20 @@
-export default function ReviewPage() {
+import { listEntriesForCurrentWorkspace } from "@/features/entries/actions";
+import { ReviewSetup } from "@/features/review/review-setup";
+
+export default async function ReviewPage() {
+  const rows = await listEntriesForCurrentWorkspace();
+  const serializedRows = rows.map((row) => ({
+    id: row.id,
+    type: row.type,
+    title: row.title,
+    status: row.status,
+    updatedAt: row.updatedAt.toISOString(),
+    meaning: row.meaning,
+    payload: row.payload,
+    languages: row.languages ?? [],
+  }));
+
   return (
-    <div className="space-y-2">
-      <h1 className="text-5xl font-semibold uppercase tracking-wider">Review</h1>
-      <p className="text-sm text-muted-foreground">
-        Review sessions and attempts are not wired yet.
-      </p>
-    </div>
+    <ReviewSetup rows={serializedRows} />
   );
 }

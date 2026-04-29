@@ -17,6 +17,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { FieldArrayWithId, UseFormRegister } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,11 @@ export function MeaningRowsField({
   move,
   disabled,
 }: MeaningRowsFieldProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
@@ -96,24 +102,109 @@ export function MeaningRowsField({
         <span className="sr-only">Remove</span>
       </div>
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={fields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-3">
-            {fields.map((field, index) => (
-              <SortableMeaningRow
-                key={field.id}
-                id={field.id}
-                index={index}
-                register={register}
-                onRemove={() => remove(index)}
-                removeDisabled={fields.length <= 1 || Boolean(disabled)}
-                disabled={disabled}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+      {mounted ? (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={fields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-3">
+              {fields.map((field, index) => (
+                <SortableMeaningRow
+                  key={field.id}
+                  id={field.id}
+                  index={index}
+                  register={register}
+                  onRemove={() => remove(index)}
+                  removeDisabled={fields.length <= 1 || Boolean(disabled)}
+                  disabled={disabled}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      ) : (
+        <div className="space-y-3">
+          {fields.map((field, index) => (
+            <StaticMeaningRow
+              key={field.id}
+              index={index}
+              register={register}
+              onRemove={() => remove(index)}
+              removeDisabled={fields.length <= 1 || Boolean(disabled)}
+              disabled={disabled}
+            />
+          ))}
+        </div>
+      )}
     </>
+  );
+}
+
+function StaticMeaningRow({
+  index,
+  register,
+  onRemove,
+  removeDisabled,
+  disabled,
+}: {
+  index: number;
+  register: UseFormArrayRegister;
+  onRemove: () => void;
+  removeDisabled: boolean;
+  disabled?: boolean;
+}) {
+  return (
+    <div
+      style={meaningRowGridStyle}
+      className="flex flex-col gap-2 rounded-[1.25rem] border border-transparent p-1 sm:grid sm:items-center sm:gap-x-2"
+    >
+      <div className="flex shrink-0 justify-center sm:block">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-9 cursor-default touch-none text-muted-foreground"
+          disabled
+          aria-label="Drag to reorder"
+        >
+          <GripVertical className="size-5" aria-hidden />
+        </Button>
+      </div>
+
+      <div className="min-w-0 space-y-1 sm:space-y-0">
+        <Label className="sm:hidden" htmlFor={`meaning-${index}-text`}>
+          Meaning
+        </Label>
+        <Input
+          id={`meaning-${index}-text`}
+          placeholder="Translation"
+          disabled={disabled}
+          {...register(`meanings.${index}.meaning` as const)}
+        />
+      </div>
+
+      <div className="min-w-0 space-y-1 sm:space-y-0">
+        <Label className="sm:hidden" htmlFor={`meaning-${index}-example`}>
+          Example
+        </Label>
+        <Input
+          id={`meaning-${index}-example`}
+          placeholder="Example sentence"
+          disabled={disabled}
+          {...register(`meanings.${index}.example` as const)}
+        />
+      </div>
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="shrink-0 self-end text-muted-foreground hover:text-destructive sm:self-center"
+        disabled={removeDisabled}
+        onClick={onRemove}
+        aria-label="Remove meaning row"
+      >
+        <Trash2 className="size-4" aria-hidden />
+      </Button>
+    </div>
   );
 }
 
